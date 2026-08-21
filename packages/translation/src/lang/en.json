@@ -4167,7 +4167,7 @@
         },
         "gpuTemperatureSensor": {
           "label": "GPU temperature sensor",
-          "description": "Choose a Beszel sensor, or automatically match the GPU name when possible."
+          "description": "Choose a Beszel sensor, or automatically match the GPU name when possible. Known CPU core sensors are excluded."
         },
         "showDockerCpu": {
           "label": "Show Docker CPU chart"

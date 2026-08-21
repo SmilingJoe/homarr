@@ -2,6 +2,7 @@ import { IconChartAreaLine, IconServerOff } from "@tabler/icons-react";
 
 import { clientApi } from "@homarr/api/client";
 
+import { getSelectableGpuTemperatureSensors } from "../beszel/_shared/temperature-sensors";
 import { createWidgetDefinition } from "../definition";
 import { optionsBuilder } from "../options";
 
@@ -70,9 +71,7 @@ export const { definition, componentLoader } = createWidgetDefinition("beszelSys
                 ? selectedOption.label
                 : "";
             const searchText = query === selectedLabel ? "" : query;
-            const matchingSensors = [...sensors]
-              .toSorted((a, b) => a.localeCompare(b))
-              .filter((sensor) => sensor.toLocaleLowerCase().includes(searchText.toLocaleLowerCase()));
+            const matchingSensors = getSelectableGpuTemperatureSensors(sensors, searchText);
             return {
               isPending: systemsPending || statsPending,
               options: [
