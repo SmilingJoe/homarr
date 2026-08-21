@@ -46,6 +46,42 @@ export const { definition, componentLoader } = createWidgetDefinition("beszelSys
             { value: "fahrenheit", label: "Fahrenheit" },
           ],
         }),
+        gpuTemperatureSensor: factory.dynamicSelect({
+          defaultValue: { value: "auto", label: "Auto-detect matching GPU" },
+          withDescription: true,
+          useOptions(query, integrationIds, options) {
+            const { data: systems = [], isPending: systemsPending } = clientApi.widget.beszel.getSystems.useQuery(
+              { integrationIds },
+              { enabled: integrationIds.length > 0 },
+            );
+            const configuredSystemId = typeof options.systemId === "string" ? options.systemId : "";
+            const systemId = configuredSystemId || systems.flatMap((result) => result.systems)[0]?.id || "";
+            const { data, isPending: statsPending } = clientApi.widget.beszel.getSystemStats.useQuery(
+              { integrationIds, systemId, timePeriod: "1h", includeDocker: false },
+              { enabled: integrationIds.length > 0 && systemId !== "" },
+            );
+            const sensors = new Set<string>();
+            for (const record of data?.systemStats ?? []) {
+              for (const sensor of Object.keys(record.stats.t ?? {})) sensors.add(sensor);
+            }
+            const selectedOption = options.gpuTemperatureSensor;
+            const selectedLabel =
+              typeof selectedOption === "object" && selectedOption !== null && "label" in selectedOption
+                ? selectedOption.label
+                : "";
+            const searchText = query === selectedLabel ? "" : query;
+            const matchingSensors = [...sensors]
+              .toSorted((a, b) => a.localeCompare(b))
+              .filter((sensor) => sensor.toLocaleLowerCase().includes(searchText.toLocaleLowerCase()));
+            return {
+              isPending: systemsPending || statsPending,
+              options: [
+                { value: "auto", label: "Auto-detect matching GPU" },
+                ...matchingSensors.map((sensor) => ({ value: sensor, label: sensor })),
+              ],
+            };
+          },
+        }),
         showCpu: factory.switch({ defaultValue: true }),
         showMemory: factory.switch({ defaultValue: true }),
         showDisk: factory.switch({ defaultValue: true }),
@@ -61,6 +97,9 @@ export const { definition, componentLoader } = createWidgetDefinition("beszelSys
       }),
       {
         gpuTemperatureUnit: {
+          shouldHide: (options) => !options.showGpuTemperature,
+        },
+        gpuTemperatureSensor: {
           shouldHide: (options) => !options.showGpuTemperature,
         },
       },

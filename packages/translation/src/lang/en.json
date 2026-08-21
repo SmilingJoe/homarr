@@ -4165,6 +4165,10 @@
         "gpuTemperatureUnit": {
           "label": "GPU temperature unit"
         },
+        "gpuTemperatureSensor": {
+          "label": "GPU temperature sensor",
+          "description": "Choose a Beszel sensor, or automatically match the GPU name when possible."
+        },
         "showDockerCpu": {
           "label": "Show Docker CPU chart"
         },
@@ -4233,7 +4237,8 @@
         },
         "gpuTemperature": {
           "title": "GPU Temperature",
-          "subtitle": "Temperature by GPU"
+          "subtitle": "Temperature by GPU",
+          "sensorSubtitle": "Selected Beszel temperature sensor"
         },
         "dockerCpu": {
           "title": "Docker CPU Usage",

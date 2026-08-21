@@ -76,6 +76,7 @@ interface BeszelStatsViewProps {
   systemId: string;
   timePeriod: BeszelTimePeriod;
   visibility: BeszelStatsVisibility;
+  gpuTemperatureSensor?: string;
   columns: 1 | 2;
   onSwitchToHistorical?: () => void;
 }
@@ -87,6 +88,7 @@ export function BeszelStatsView({
   systemId,
   timePeriod,
   visibility,
+  gpuTemperatureSensor,
   columns,
   onSwitchToHistorical,
 }: BeszelStatsViewProps) {
@@ -156,7 +158,10 @@ export function BeszelStatsView({
       systemStats,
     ),
   );
-  const gpuTemperatureDevices = useGpuTemperatureDevices(whenVisible(visibility.gpuTemperature, systemStats));
+  const gpuTemperatureDevices = useGpuTemperatureDevices(
+    whenVisible(visibility.gpuTemperature, systemStats),
+    gpuTemperatureSensor,
+  );
   const gpuSeries = useMemo(
     () =>
       gpuDevices.map((device, index) => ({
@@ -393,7 +398,9 @@ export function BeszelStatsView({
           {visibility.gpuTemperature && gpuTemperatureSeries.length > 0 && gpuTemperatureData.length > 0 && (
             <BeszelChartPanel
               title={t("chart.gpuTemperature.title")}
-              subtitle={t("chart.gpuTemperature.subtitle")}
+              subtitle={
+                gpuTemperatureSensor ? t("chart.gpuTemperature.sensorSubtitle") : t("chart.gpuTemperature.subtitle")
+              }
               chartProps={{
                 h: CHART_HEIGHT,
                 data: gpuTemperatureData,

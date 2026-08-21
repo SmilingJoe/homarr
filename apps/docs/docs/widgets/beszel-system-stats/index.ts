@@ -86,6 +86,13 @@ export const beszelSystemStatsWidget: WidgetDefinition = {
         defaultValue: "Celsius",
       },
       {
+        name: "GPU temperature sensor",
+        description:
+          "Select a temperature sensor reported by Beszel, or keep automatic matching. Available sensors load from the selected system.",
+        values: { type: "select", options: ["Auto-detect matching GPU", "Reported Beszel sensors"] },
+        defaultValue: "Auto-detect matching GPU",
+      },
+      {
         name: "Show Docker CPU",
         description: "Displays Docker container CPU usage chart",
         values: { type: "boolean" },

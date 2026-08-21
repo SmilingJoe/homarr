@@ -157,6 +157,9 @@ export default function BeszelSystemStatsWidget({
               dockerMemory: options.showDockerMemory,
               dockerNetwork: options.showDockerNetwork,
             }}
+            gpuTemperatureSensor={
+              options.gpuTemperatureSensor?.value === "auto" ? undefined : options.gpuTemperatureSensor?.value
+            }
             onSwitchToHistorical={() => setOptions({ newOptions: { timePeriod: "1h" } })}
           />
         </Stack>

@@ -168,4 +168,15 @@ describe("buildGpuChartData", () => {
 
     expect(buildGpuTemperatureDevices([sample])).toEqual([{ id: "0", seriesName: "RTX 3090 (0)" }]);
   });
+
+  test("uses an explicitly selected Beszel temperature sensor when automatic matching is unavailable", () => {
+    const sample = record("2026-07-11T13:46:00.000Z", 0, undefined);
+    sample.stats.g = { "0": { n: "AMD Radeon", u: 10 } };
+    sample.stats.t = { amdgpu_edge: 53 };
+
+    const devices = buildGpuTemperatureDevices([sample], "amdgpu_edge");
+
+    expect(devices).toEqual([{ id: "amdgpu_edge", seriesName: "amdgpu_edge", temperatureSensor: "amdgpu_edge" }]);
+    expect(buildGpuChartData([sample], devices, "temperature", "1h")[0]?.amdgpu_edge).toBe(53);
+  });
 });
