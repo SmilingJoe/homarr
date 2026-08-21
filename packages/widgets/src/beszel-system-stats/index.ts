@@ -20,36 +20,51 @@ export const { definition, componentLoader } = createWidgetDefinition("beszelSys
   supportedIntegrations: ["beszel", "mock"],
   integrationsRequired: true,
   createOptions() {
-    return optionsBuilder.from((factory) => ({
-      systemId: factory.integrationSelect({
-        withDescription: true,
-        clearable: true,
-        useOptions: (integrationIds: string[]) => {
-          const {
-            data = [],
-            isPending,
-            isError,
-          } = clientApi.widget.beszel.getSystems.useQuery({ integrationIds }, { enabled: integrationIds.length > 0 });
-          const selectData = data.flatMap((r) => r.systems.map((s) => ({ value: s.id, label: s.name })));
-          return { data: selectData, isPending, isError };
+    return optionsBuilder.from(
+      (factory) => ({
+        systemId: factory.integrationSelect({
+          withDescription: true,
+          clearable: true,
+          useOptions: (integrationIds: string[]) => {
+            const {
+              data = [],
+              isPending,
+              isError,
+            } = clientApi.widget.beszel.getSystems.useQuery({ integrationIds }, { enabled: integrationIds.length > 0 });
+            const selectData = data.flatMap((r) => r.systems.map((s) => ({ value: s.id, label: s.name })));
+            return { data: selectData, isPending, isError };
+          },
+        }),
+        timePeriod: factory.select({
+          defaultValue: "1h",
+          options: timePeriodOptions,
+        }),
+        gpuTemperatureUnit: factory.select({
+          defaultValue: "celsius",
+          options: [
+            { value: "celsius", label: "Celsius" },
+            { value: "fahrenheit", label: "Fahrenheit" },
+          ],
+        }),
+        showCpu: factory.switch({ defaultValue: true }),
+        showMemory: factory.switch({ defaultValue: true }),
+        showDisk: factory.switch({ defaultValue: true }),
+        showDiskIO: factory.switch({ defaultValue: true }),
+        showNetwork: factory.switch({ defaultValue: true }),
+        showGpuUsage: factory.switch({ defaultValue: true }),
+        showGpuMemory: factory.switch({ defaultValue: true }),
+        showGpuPower: factory.switch({ defaultValue: true }),
+        showGpuTemperature: factory.switch({ defaultValue: true }),
+        showDockerCpu: factory.switch({ defaultValue: true }),
+        showDockerMemory: factory.switch({ defaultValue: true }),
+        showDockerNetwork: factory.switch({ defaultValue: true }),
+      }),
+      {
+        gpuTemperatureUnit: {
+          shouldHide: (options) => !options.showGpuTemperature,
         },
-      }),
-      timePeriod: factory.select({
-        defaultValue: "1h",
-        options: timePeriodOptions,
-      }),
-      showCpu: factory.switch({ defaultValue: true }),
-      showMemory: factory.switch({ defaultValue: true }),
-      showDisk: factory.switch({ defaultValue: true }),
-      showDiskIO: factory.switch({ defaultValue: true }),
-      showNetwork: factory.switch({ defaultValue: true }),
-      showGpuUsage: factory.switch({ defaultValue: true }),
-      showGpuMemory: factory.switch({ defaultValue: true }),
-      showGpuPower: factory.switch({ defaultValue: true }),
-      showDockerCpu: factory.switch({ defaultValue: true }),
-      showDockerMemory: factory.switch({ defaultValue: true }),
-      showDockerNetwork: factory.switch({ defaultValue: true }),
-    }));
+      },
+    );
   },
   errors: {
     INTERNAL_SERVER_ERROR: {

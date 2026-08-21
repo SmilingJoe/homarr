@@ -27,6 +27,7 @@ const systemStats: BeszelSystemStatsRecord[] = [
       d: 0,
       du: 0,
       dp: 0,
+      t: { "RTX 3090": 47 },
       g: { "0": { n: "RTX 3090", u: 10, mu: 1024, p: 150 } },
     },
   },
@@ -74,6 +75,8 @@ const hiddenCharts: BeszelStatsVisibility = {
   gpuUsage: false,
   gpuMemory: false,
   gpuPower: false,
+  gpuTemperature: false,
+  gpuTemperatureFahrenheit: false,
   dockerCpu: false,
   dockerMemory: false,
   dockerNetwork: false,
@@ -87,10 +90,17 @@ const setGpuStats = (gpu: BeszelSystemStatsRecord["stats"]["g"]) => {
   sample.stats.g = gpu;
 };
 
+const setTemperatureStats = (temperature: BeszelSystemStatsRecord["stats"]["t"]) => {
+  const sample = systemStats[0];
+  if (!sample) throw new Error("Expected a GPU test sample");
+  sample.stats.t = temperature;
+};
+
 afterEach(() => {
   for (const root of roots.splice(0)) root.unmount();
   document.body.replaceChildren();
   setGpuStats({ "0": { n: "RTX 3090", u: 10, mu: 1024, p: 150 } });
+  setTemperatureStats({ "RTX 3090": 47 });
 });
 
 const renderStatsView = async (visibility: BeszelStatsVisibility) => {
@@ -118,17 +128,32 @@ const renderStatsView = async (visibility: BeszelStatsVisibility) => {
 
 describe("BeszelStatsView GPU charts", () => {
   test("renders only the GPU charts enabled by widget options", async () => {
-    const container = await renderStatsView({ ...hiddenCharts, gpuUsage: true, gpuPower: true });
+    const container = await renderStatsView({ ...hiddenCharts, gpuUsage: true, gpuPower: true, gpuTemperature: true });
 
     expect(container.querySelector('[data-chart="chart.gpuUsage.title"]')).not.toBeNull();
     expect(container.querySelector('[data-chart="chart.gpuPower.title"]')).not.toBeNull();
+    expect(container.querySelector('[data-chart="chart.gpuTemperature.title"]')).not.toBeNull();
     expect(container.querySelector('[data-chart="chart.gpuMemory.title"]')).toBeNull();
   });
 
   test("does not render GPU charts for a non-GPU system", async () => {
     setGpuStats(undefined);
-    const container = await renderStatsView({ ...hiddenCharts, gpuUsage: true, gpuMemory: true, gpuPower: true });
+    const container = await renderStatsView({
+      ...hiddenCharts,
+      gpuUsage: true,
+      gpuMemory: true,
+      gpuPower: true,
+      gpuTemperature: true,
+    });
 
     expect(container.querySelectorAll("[data-chart]")).toHaveLength(0);
+  });
+
+  test("does not render a temperature chart when Beszel reports no matching GPU sensor", async () => {
+    setTemperatureStats(undefined);
+
+    const container = await renderStatsView({ ...hiddenCharts, gpuTemperature: true });
+
+    expect(container.querySelector('[data-chart="chart.gpuTemperature.title"]')).toBeNull();
   });
 });

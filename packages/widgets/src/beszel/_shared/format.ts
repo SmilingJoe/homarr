@@ -37,6 +37,10 @@ export const formatPercent = (value: number): string => `${value.toFixed(1)}%`;
 
 export const formatWatts = (value: number): string => `${value.toFixed(1)} W`;
 
+export const formatCelsius = (value: number): string => `${value.toFixed(1)} °C`;
+
+export const formatFahrenheit = (value: number): string => `${value.toFixed(1)} °F`;
+
 export const getProgressTrackSize = (size: "xs" | "sm"): number => (size === "xs" ? 6 : 9);
 
 export const chartAxisFormatters = {
@@ -51,6 +55,8 @@ export const chartAxisFormatters = {
   bytes: (value: number) => formatScaledCompact(Number(value), byteUnits, "0"),
   rate: (value: number) => formatScaledCompact(Number(value), rateUnits, "0"),
   watts: (value: number) => `${Number(value).toFixed(0)}W`,
+  celsius: (value: number) => `${Number(value).toFixed(0)}°C`,
+  fahrenheit: (value: number) => `${Number(value).toFixed(0)}°F`,
 } as const;
 
 export const formatUptime = (seconds: number): string => dayjs.duration(seconds, "seconds").humanize();

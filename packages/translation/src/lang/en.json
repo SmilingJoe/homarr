@@ -4159,6 +4159,12 @@
         "showGpuPower": {
           "label": "Show GPU power chart"
         },
+        "showGpuTemperature": {
+          "label": "Show GPU temperature chart"
+        },
+        "gpuTemperatureUnit": {
+          "label": "GPU temperature unit"
+        },
         "showDockerCpu": {
           "label": "Show Docker CPU chart"
         },
@@ -4224,6 +4230,10 @@
         "gpuPower": {
           "title": "GPU Power",
           "subtitle": "Power draw by GPU"
+        },
+        "gpuTemperature": {
+          "title": "GPU Temperature",
+          "subtitle": "Temperature by GPU"
         },
         "dockerCpu": {
           "title": "Docker CPU Usage",

@@ -73,6 +73,19 @@ export const beszelSystemStatsWidget: WidgetDefinition = {
         defaultValue: "yes",
       },
       {
+        name: "Show GPU temperature",
+        description: "Displays the temperature reported by Beszel for each GPU",
+        values: { type: "boolean" },
+        defaultValue: "yes",
+      },
+      {
+        name: "GPU temperature unit",
+        description:
+          "The display unit for the GPU temperature chart. This setting does not indicate that Beszel reports GPU temperature.",
+        values: { type: "select", options: ["Celsius", "Fahrenheit"] },
+        defaultValue: "Celsius",
+      },
+      {
         name: "Show Docker CPU",
         description: "Displays Docker container CPU usage chart",
         values: { type: "boolean" },

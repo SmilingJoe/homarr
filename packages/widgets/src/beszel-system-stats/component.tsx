@@ -151,6 +151,8 @@ export default function BeszelSystemStatsWidget({
               gpuUsage: options.showGpuUsage,
               gpuMemory: options.showGpuMemory,
               gpuPower: options.showGpuPower,
+              gpuTemperature: options.showGpuTemperature,
+              gpuTemperatureFahrenheit: options.gpuTemperatureUnit === "fahrenheit",
               dockerCpu: options.showDockerCpu,
               dockerMemory: options.showDockerMemory,
               dockerNetwork: options.showDockerNetwork,

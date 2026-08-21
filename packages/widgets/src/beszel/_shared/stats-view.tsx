@@ -18,11 +18,14 @@ import {
   useDockerChartData,
   useGpuChartData,
   useGpuDevices,
+  useGpuTemperatureDevices,
   useSystemChartData,
 } from "./chart";
 import {
   chartAxisFormatters,
   formatByteRate,
+  formatCelsius,
+  formatFahrenheit,
   formatGB,
   formatPercent,
   formatStorageBytes,
@@ -39,6 +42,8 @@ const tooltipRate = makeTooltipProps(formatByteRate, true);
 const tooltipPercentTotal = makeTooltipProps(formatPercent, true);
 const tooltipBytesTotal = makeTooltipProps(formatStorageBytes, true);
 const tooltipWatts = makeTooltipProps(formatWatts);
+const tooltipCelsius = makeTooltipProps(formatCelsius);
+const tooltipFahrenheit = makeTooltipProps(formatFahrenheit);
 
 const ChartSkeleton = () => (
   <Stack gap={4} style={{ minWidth: 0 }}>
@@ -59,6 +64,8 @@ export interface BeszelStatsVisibility {
   gpuUsage: boolean;
   gpuMemory: boolean;
   gpuPower: boolean;
+  gpuTemperature: boolean;
+  gpuTemperatureFahrenheit: boolean;
   dockerCpu: boolean;
   dockerMemory: boolean;
   dockerNetwork: boolean;
@@ -144,8 +151,12 @@ export function BeszelStatsView({
   const networkData = useSystemChartData(whenVisible(visibility.network, systemStats), mappers.network, timePeriod);
 
   const gpuDevices = useGpuDevices(
-    whenVisible(visibility.gpuUsage || visibility.gpuMemory || visibility.gpuPower, systemStats),
+    whenVisible(
+      visibility.gpuUsage || visibility.gpuMemory || visibility.gpuPower || visibility.gpuTemperature,
+      systemStats,
+    ),
   );
+  const gpuTemperatureDevices = useGpuTemperatureDevices(whenVisible(visibility.gpuTemperature, systemStats));
   const gpuSeries = useMemo(
     () =>
       gpuDevices.map((device, index) => ({
@@ -162,6 +173,21 @@ export function BeszelStatsView({
     timePeriod,
   );
   const gpuPowerData = useGpuChartData(whenVisible(visibility.gpuPower, systemStats), gpuDevices, "power", timePeriod);
+  const gpuTemperatureData = useGpuChartData(
+    whenVisible(visibility.gpuTemperature, systemStats),
+    gpuTemperatureDevices,
+    "temperature",
+    timePeriod,
+    visibility.gpuTemperatureFahrenheit,
+  );
+  const gpuTemperatureSeries = useMemo(
+    () =>
+      gpuTemperatureDevices.map((device, index) => ({
+        name: device.seriesName,
+        color: containerColors[index % containerColors.length] as string,
+      })),
+    [gpuTemperatureDevices],
+  );
 
   const efsPaths = useMemo(() => {
     const paths = new Set<string>();
@@ -361,6 +387,21 @@ export function BeszelStatsView({
                 series: gpuSeries,
                 yAxisFormatter: chartAxisFormatters.watts,
                 tooltipProps: tooltipWatts,
+              }}
+            />
+          )}
+          {visibility.gpuTemperature && gpuTemperatureSeries.length > 0 && gpuTemperatureData.length > 0 && (
+            <BeszelChartPanel
+              title={t("chart.gpuTemperature.title")}
+              subtitle={t("chart.gpuTemperature.subtitle")}
+              chartProps={{
+                h: CHART_HEIGHT,
+                data: gpuTemperatureData,
+                series: gpuTemperatureSeries,
+                yAxisFormatter: visibility.gpuTemperatureFahrenheit
+                  ? chartAxisFormatters.fahrenheit
+                  : chartAxisFormatters.celsius,
+                tooltipProps: visibility.gpuTemperatureFahrenheit ? tooltipFahrenheit : tooltipCelsius,
               }}
             />
           )}

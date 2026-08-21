@@ -268,7 +268,7 @@ export interface BeszelGpuDevice {
   seriesName: string;
 }
 
-export type BeszelGpuMetric = "usage" | "memory" | "power";
+export type BeszelGpuMetric = "usage" | "memory" | "power" | "temperature";
 
 export const buildGpuDevices = (systemStats: BeszelSystemStatsRecord[] | undefined) => {
   const devices = new Map<string, BeszelGpuDevice>();
@@ -283,10 +283,28 @@ export const buildGpuDevices = (systemStats: BeszelSystemStatsRecord[] | undefin
 export const useGpuDevices = (systemStats: BeszelSystemStatsRecord[] | undefined) =>
   useMemo(() => buildGpuDevices(systemStats), [systemStats]);
 
-const gpuExtractors: Record<BeszelGpuMetric, (device: BeszelGPUData | undefined) => number> = {
-  usage: (device) => device?.u ?? 0,
-  memory: (device) => (device?.mu ?? 0) * 1024 * 1024,
-  power: (device) => device?.p ?? 0,
+export const buildGpuTemperatureDevices = (systemStats: BeszelSystemStatsRecord[] | undefined) => {
+  const devices = new Map<string, BeszelGpuDevice>();
+  for (const record of systemStats ?? []) {
+    for (const [id, gpu] of Object.entries(record.stats.g ?? {})) {
+      if (record.stats.t?.[gpu.n] !== undefined && !devices.has(id)) {
+        devices.set(id, { id, seriesName: `${gpu.n} (${id})` });
+      }
+    }
+  }
+  return [...devices.values()].toSorted((a, b) => a.id.localeCompare(b.id));
+};
+
+export const useGpuTemperatureDevices = (systemStats: BeszelSystemStatsRecord[] | undefined) =>
+  useMemo(() => buildGpuTemperatureDevices(systemStats), [systemStats]);
+
+type GpuExtractor = (stats: BeszelSystemStatsRecord["stats"], device: BeszelGPUData | undefined) => number;
+
+const gpuExtractors: Record<BeszelGpuMetric, GpuExtractor> = {
+  usage: (_stats, device) => device?.u ?? 0,
+  memory: (_stats, device) => (device?.mu ?? 0) * 1024 * 1024,
+  power: (_stats, device) => device?.p ?? 0,
+  temperature: (stats, device) => (device ? (stats.t?.[device.n] ?? 0) : 0),
 };
 
 export const useGpuChartData = (
@@ -294,10 +312,11 @@ export const useGpuChartData = (
   devices: BeszelGpuDevice[],
   metric: BeszelGpuMetric,
   timePeriod: BeszelTimePeriod = "1h",
+  fahrenheit = false,
 ) =>
   useMemo(
-    () => buildGpuChartData(systemStats, devices, metric, timePeriod),
-    [systemStats, devices, metric, timePeriod],
+    () => buildGpuChartData(systemStats, devices, metric, timePeriod, fahrenheit),
+    [systemStats, devices, metric, timePeriod, fahrenheit],
   );
 
 export const buildGpuChartData = (
@@ -305,6 +324,7 @@ export const buildGpuChartData = (
   devices: BeszelGpuDevice[],
   metric: BeszelGpuMetric,
   timePeriod: BeszelTimePeriod = "1h",
+  fahrenheit = false,
 ) => {
   if (!systemStats?.length) return [];
   const extract = gpuExtractors[metric];
@@ -312,7 +332,8 @@ export const buildGpuChartData = (
   const mapped = ordered.map((record) => {
     const point: Record<string, unknown> = { time: fmt(record.created), rawTime: record.created };
     for (const device of devices) {
-      point[device.seriesName] = extract(record.stats.g?.[device.id]);
+      const value = extract(record.stats, record.stats.g?.[device.id]);
+      point[device.seriesName] = metric === "temperature" && fahrenheit ? (value * 9) / 5 + 32 : value;
     }
     return point;
   });

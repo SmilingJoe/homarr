@@ -2,7 +2,13 @@ import { describe, expect, test } from "vitest";
 
 import type { BeszelSystemStatsRecord } from "@homarr/integrations/types";
 
-import { buildDiskChartData, buildGpuChartData, buildGpuDevices, padLiveTimeGrid } from "./chart";
+import {
+  buildDiskChartData,
+  buildGpuChartData,
+  buildGpuDevices,
+  buildGpuTemperatureDevices,
+  padLiveTimeGrid,
+} from "./chart";
 
 const record = (
   created: string,
@@ -95,6 +101,8 @@ describe("buildGpuChartData", () => {
     };
     const second = record("2026-07-11T13:47:00.000Z", 0, undefined);
     second.stats.g = { "0": { n: "RTX 3090", u: 30, mu: 4096, p: 200 } };
+    first.stats.t = { "RTX 3090": 45 };
+    second.stats.t = { "RTX 3090": 55 };
 
     const devices = [
       { id: "0", seriesName: "RTX 3090 (0)" },
@@ -113,6 +121,12 @@ describe("buildGpuChartData", () => {
     expect(buildGpuChartData([second, first], devices, "power", "1h").map((point) => point["RTX 3090 (0)"])).toEqual([
       150, 200,
     ]);
+    expect(
+      buildGpuChartData([second, first], devices, "temperature", "1h").map((point) => point["RTX 3090 (0)"]),
+    ).toEqual([45, 55]);
+    expect(
+      buildGpuChartData([second, first], devices, "temperature", "1h", true).map((point) => point["RTX 3090 (0)"]),
+    ).toEqual([113, 131]);
   });
 
   test("returns no data when no GPU stats are available", () => {
@@ -140,6 +154,18 @@ describe("buildGpuChartData", () => {
 
     expect(buildGpuChartData([sample], devices, "memory", "1m").at(-1)?.["RTX 3090 (0)"]).toBe(0);
     expect(buildGpuChartData([sample], devices, "power", "1m").at(-1)?.["RTX 3090 (0)"]).toBe(0);
+    expect(buildGpuChartData([sample], devices, "temperature", "1m").at(-1)?.["RTX 3090 (0)"]).toBe(0);
     expect(buildGpuChartData([sample], devices, "usage", "1m")).toHaveLength(60);
+  });
+
+  test("includes only GPUs with a matching historical temperature sensor", () => {
+    const sample = record("2026-07-11T13:46:00.000Z", 0, undefined);
+    sample.stats.g = {
+      "0": { n: "RTX 3090", u: 10 },
+      "1": { n: "RTX 4080", u: 20 },
+    };
+    sample.stats.t = { "RTX 3090": 47 };
+
+    expect(buildGpuTemperatureDevices([sample])).toEqual([{ id: "0", seriesName: "RTX 3090 (0)" }]);
   });
 });

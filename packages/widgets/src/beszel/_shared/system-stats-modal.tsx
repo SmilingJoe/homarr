@@ -26,6 +26,8 @@ const allCharts = {
   gpuUsage: true,
   gpuMemory: true,
   gpuPower: true,
+  gpuTemperature: true,
+  gpuTemperatureFahrenheit: false,
   dockerCpu: true,
   dockerMemory: true,
   dockerNetwork: true,
