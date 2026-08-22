@@ -62,8 +62,10 @@ export const { definition, componentLoader } = createWidgetDefinition("beszelSys
               { enabled: integrationIds.length > 0 && systemId !== "" },
             );
             const sensors = new Set<string>();
+            const gpuNames = new Set<string>();
             for (const record of data?.systemStats ?? []) {
               for (const sensor of Object.keys(record.stats.t ?? {})) sensors.add(sensor);
+              for (const gpu of Object.values(record.stats.g ?? {})) gpuNames.add(gpu.n);
             }
             const selectedOption = options.gpuTemperatureSensor;
             const selectedLabel =
@@ -71,7 +73,7 @@ export const { definition, componentLoader } = createWidgetDefinition("beszelSys
                 ? selectedOption.label
                 : "";
             const searchText = query === selectedLabel ? "" : query;
-            const matchingSensors = getSelectableGpuTemperatureSensors(sensors, searchText);
+            const matchingSensors = getSelectableGpuTemperatureSensors(sensors, gpuNames, searchText);
             return {
               isPending: systemsPending || statsPending,
               options: [

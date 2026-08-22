@@ -88,7 +88,7 @@ export const beszelSystemStatsWidget: WidgetDefinition = {
       {
         name: "GPU temperature sensor",
         description:
-          "Select a temperature sensor reported by Beszel, or keep automatic matching. Available sensors load from the selected system; known CPU core sensors are excluded.",
+          "Select a GPU-related temperature sensor reported by Beszel, or keep automatic matching. Available sensors load from the selected system and exclude CPU, storage, network, and other unrelated sensors.",
         values: { type: "select", options: ["Auto-detect matching GPU", "Reported Beszel sensors"] },
         defaultValue: "Auto-detect matching GPU",
       },

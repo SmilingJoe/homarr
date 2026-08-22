@@ -3,19 +3,29 @@ import { describe, expect, test } from "vitest";
 import { getSelectableGpuTemperatureSensors } from "./temperature-sensors";
 
 describe("getSelectableGpuTemperatureSensors", () => {
-  test("excludes Linux CPU core sensors while retaining GPU sensor names", () => {
+  test("keeps reported GPU names and unambiguous GPU sensors", () => {
     expect(
       getSelectableGpuTemperatureSensors(
-        ["coretemp_package_id_0", "coretemp_core_0", "GeForce RTX 4080", "amdgpu_edge"],
+        [
+          "acpitz",
+          "AMD Radeon 780M",
+          "AMD Radeon RX 7700S",
+          "amdgpu_edge",
+          "cros_ec_gpu_amb_f75303@4d",
+          "k10temp_tctl",
+          "nvme_composite",
+        ],
+        ["AMD Radeon 780M", "AMD Radeon RX 7700S"],
         "",
       ),
-    ).toEqual(["amdgpu_edge", "GeForce RTX 4080"]);
+    ).toEqual(["AMD Radeon 780M", "AMD Radeon RX 7700S", "amdgpu_edge", "cros_ec_gpu_amb_f75303@4d"]);
   });
 
-  test("filters the remaining sensor names by search text", () => {
-    expect(getSelectableGpuTemperatureSensors(["GeForce RTX 4080", "amdgpu_edge"], "radeon")).toEqual([]);
-    expect(getSelectableGpuTemperatureSensors(["GeForce RTX 4080", "amdgpu_edge"], "geforce")).toEqual([
-      "GeForce RTX 4080",
-    ]);
+  test("filters matching GPU sensors by search text", () => {
+    const sensors = ["AMD Radeon 780M", "amdgpu_edge", "cros_ec_gpu_vram_f75303@4d"];
+    const gpuNames = ["AMD Radeon 780M"];
+
+    expect(getSelectableGpuTemperatureSensors(sensors, gpuNames, "radeon")).toEqual(["AMD Radeon 780M"]);
+    expect(getSelectableGpuTemperatureSensors(sensors, gpuNames, "vram")).toEqual(["cros_ec_gpu_vram_f75303@4d"]);
   });
 });
